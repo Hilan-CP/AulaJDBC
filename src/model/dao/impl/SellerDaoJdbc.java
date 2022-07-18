@@ -4,7 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import database.Database;
 import model.dao.SellerDao;
@@ -67,7 +70,73 @@ public class SellerDaoJdbc implements SellerDao {
 
 	@Override
 	public List<Seller> findAll() {
-		// TODO Auto-generated method stub
+		PreparedStatement statement = null;
+		ResultSet result = null;
+		
+		try {
+			statement = connection.prepareStatement("select seller.*, department.Name as DepartmentName "
+												+ "from seller inner join department "
+												+ "on seller.DepartmentId = department.Id ");
+			result = statement.executeQuery();
+			
+			List<Seller> list = new ArrayList<>();
+			Map<Integer, Department> map = new HashMap<>();
+
+			while(result.next()) {
+				Department dep = map.get(result.getInt("DepartmentId"));
+				if(dep == null) {
+					dep = createDepartment(result);
+				}
+				
+				Seller sel = createSeller(result, dep);
+				list.add(sel);
+			}
+			return list;
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			Database.closeStatement(statement);
+			Database.closeResultSet(result);
+		}
+		return null;
+	}
+	
+	@Override
+	public List<Seller> findByDepartment(Department obj) {
+		PreparedStatement statement = null;
+		ResultSet result = null;
+		
+		try {
+			statement = connection.prepareStatement("select seller.*, department.Name as DepartmentName "
+												+ "from seller inner join department "
+												+ "on seller.DepartmentId = department.Id "
+												+ "where DepartmentId = ?");
+			statement.setInt(1, obj.getId());
+			result = statement.executeQuery();
+			
+			List<Seller> list = new ArrayList<>();
+			Map<Integer, Department> map = new HashMap<>();
+
+			while(result.next()) {
+				Department dep = map.get(result.getInt("DepartmentId"));
+				if(dep == null) {
+					dep = createDepartment(result);
+				}
+				
+				Seller sel = createSeller(result, dep);
+				list.add(sel);
+			}
+			return list;
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			Database.closeStatement(statement);
+			Database.closeResultSet(result);
+		}
 		return null;
 	}
 	
