@@ -1,6 +1,7 @@
 package model.dao.impl;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -23,20 +24,79 @@ public class SellerDaoJdbc implements SellerDao {
 
 	@Override
 	public void insert(Seller obj) {
-		// TODO Auto-generated method stub
+		PreparedStatement statement = null;
+		ResultSet result = null;
 		
+		try {
+			statement = connection.prepareStatement("insert into seller "
+													+ "(Name, Email, BirthDate, BaseSalary, DepartmentId) "
+													+ "values (?, ?, ?, ?, ?)",
+													statement.RETURN_GENERATED_KEYS);
+			statement.setString(1, obj.getName());
+			statement.setString(2, obj.getEmail());
+			statement.setDate(3, new Date(obj.getBirthDate().getTime()));
+			statement.setDouble(4, obj.getBaseSalary());
+			statement.setInt(5, obj.getDepartment().getId());
+			
+			int rows = statement.executeUpdate();
+			
+			if(rows > 0) {
+				result = statement.getGeneratedKeys();
+				if(result.next()) {
+					obj.setId(result.getInt(1));
+				}
+			}
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			Database.closeStatement(statement);
+			Database.closeResultSet(result);
+		}
 	}
 
 	@Override
 	public void update(Seller obj) {
-		// TODO Auto-generated method stub
+		PreparedStatement statement = null;
 		
+		try {
+			statement = connection.prepareStatement("update seller "
+													+ "set Name = ?, Email = ?, BirthDate = ?, BaseSalary = ?, DepartmentId = ? "
+													+ "where Id = ?");
+			statement.setString(1, obj.getName());
+			statement.setString(2, obj.getEmail());
+			statement.setDate(3, new Date(obj.getBirthDate().getTime()));
+			statement.setDouble(4, obj.getBaseSalary());
+			statement.setInt(5, obj.getDepartment().getId());
+			statement.setInt(6, obj.getId());
+			
+			statement.executeUpdate();
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			Database.closeStatement(statement);
+		}
 	}
 
 	@Override
 	public void deleteById(Integer id) {
-		// TODO Auto-generated method stub
+		PreparedStatement statement = null;
 		
+		try {
+			statement = connection.prepareStatement("delete from seller where Id = ?");
+			statement.setInt(1, id);
+			statement.executeUpdate();
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			Database.closeStatement(statement);
+		}
+
 	}
 
 	@Override
